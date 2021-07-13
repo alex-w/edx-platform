@@ -5,8 +5,9 @@ import logging
 
 from common.djangoapps.student.tests.factories import CourseEnrollmentFactory, UserFactory
 from common.djangoapps.util.testing import EventTestMixin
+from lms.djangoapps.certificates.data import CertificateStatuses
 from lms.djangoapps.certificates.generation import generate_course_certificate
-from lms.djangoapps.certificates.models import CertificateStatuses, GeneratedCertificate
+from lms.djangoapps.certificates.models import GeneratedCertificate
 from lms.djangoapps.certificates.tests.factories import GeneratedCertificateFactory
 from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
 from xmodule.modulestore.tests.factories import CourseFactory
@@ -41,7 +42,7 @@ class CertificateTests(EventTestMixin, ModuleStoreTestCase):
         certs = GeneratedCertificate.objects.filter(user=self.u, course_id=self.key)
         assert len(certs) == 0
 
-        generated_cert = generate_course_certificate(self.u, self.key, self.gen_mode)
+        generated_cert = generate_course_certificate(self.u, self.key, CertificateStatuses.downloadable, self.gen_mode)
         assert generated_cert.status, CertificateStatuses.downloadable
 
         certs = GeneratedCertificate.objects.filter(user=self.u, course_id=self.key)
@@ -73,8 +74,8 @@ class CertificateTests(EventTestMixin, ModuleStoreTestCase):
         cert = GeneratedCertificate.objects.get(user=self.u, course_id=self.key)
         assert cert.error_reason == error_reason
 
-        generated_cert = generate_course_certificate(self.u, self.key, self.gen_mode)
-        assert generated_cert.status, CertificateStatuses.downloadable
+        generated_cert = generate_course_certificate(self.u, self.key, CertificateStatuses.unverified, self.gen_mode)
+        assert generated_cert.status, CertificateStatuses.unverified
 
         cert = GeneratedCertificate.objects.get(user=self.u, course_id=self.key)
         assert cert.error_reason == ''
@@ -83,7 +84,7 @@ class CertificateTests(EventTestMixin, ModuleStoreTestCase):
         """
         Test that the `verify_uuid` value of a certificate does not change when it is revoked and re-awarded.
         """
-        generated_cert = generate_course_certificate(self.u, self.key, self.gen_mode)
+        generated_cert = generate_course_certificate(self.u, self.key, CertificateStatuses.downloadable, self.gen_mode)
         assert generated_cert.status, CertificateStatuses.downloadable
 
         verify_uuid = generated_cert.verify_uuid
@@ -92,7 +93,7 @@ class CertificateTests(EventTestMixin, ModuleStoreTestCase):
         assert generated_cert.status, CertificateStatuses.unavailable
         assert generated_cert.verify_uuid, verify_uuid
 
-        generated_cert = generate_course_certificate(self.u, self.key, self.gen_mode)
+        generated_cert = generate_course_certificate(self.u, self.key, CertificateStatuses.downloadable, self.gen_mode)
         assert generated_cert.status, CertificateStatuses.downloadable
         assert generated_cert.verify_uuid, verify_uuid
 
@@ -100,7 +101,7 @@ class CertificateTests(EventTestMixin, ModuleStoreTestCase):
         assert generated_cert.status, CertificateStatuses.notpassing
         assert generated_cert.verify_uuid, verify_uuid
 
-        generated_cert = generate_course_certificate(self.u, self.key, self.gen_mode)
+        generated_cert = generate_course_certificate(self.u, self.key, CertificateStatuses.downloadable, self.gen_mode)
         assert generated_cert.status, CertificateStatuses.downloadable
         assert generated_cert.verify_uuid, verify_uuid
 
@@ -116,6 +117,6 @@ class CertificateTests(EventTestMixin, ModuleStoreTestCase):
             verify_uuid=''
         )
 
-        generated_cert = generate_course_certificate(self.u, self.key, self.gen_mode)
+        generated_cert = generate_course_certificate(self.u, self.key, CertificateStatuses.downloadable, self.gen_mode)
         assert generated_cert.status, CertificateStatuses.downloadable
         assert generated_cert.verify_uuid != ''

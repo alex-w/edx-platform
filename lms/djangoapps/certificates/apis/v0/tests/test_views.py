@@ -16,7 +16,7 @@ from rest_framework.test import APITestCase
 from common.djangoapps.course_modes.models import CourseMode
 from common.djangoapps.student.tests.factories import UserFactory
 from lms.djangoapps.certificates.apis.v0.views import CertificatesDetailView, CertificatesListView
-from lms.djangoapps.certificates.models import CertificateStatuses
+from lms.djangoapps.certificates.data import CertificateStatuses
 from lms.djangoapps.certificates.tests.factories import GeneratedCertificateFactory
 from openedx.core.djangoapps.content.course_overviews.tests.factories import CourseOverviewFactory
 from openedx.core.djangoapps.user_api.tests.factories import UserPreferenceFactory
@@ -318,7 +318,7 @@ class CertificatesListRestApiTest(AuthAndScopesTestMixin, SharedModuleStoreTestC
             assert len(resp.data) == 0
 
         # Test student with 1 certificate
-        with self.assertNumQueries(10):
+        with self.assertNumQueries(12):
             resp = self.get_response(
                 AuthType.jwt,
                 requesting_user=self.global_staff,
@@ -358,7 +358,7 @@ class CertificatesListRestApiTest(AuthAndScopesTestMixin, SharedModuleStoreTestC
             download_url='www.google.com',
             grade="0.88",
         )
-        with self.assertNumQueries(10):
+        with self.assertNumQueries(12):
             resp = self.get_response(
                 AuthType.jwt,
                 requesting_user=self.global_staff,
